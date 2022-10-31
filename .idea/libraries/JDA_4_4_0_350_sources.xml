@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="JDA-4.4.0_350-sources">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../JDA-Discord/JDA-4.4.0_350-withDependencies.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/../JDA-Discord/JDA-4.4.0_350-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
