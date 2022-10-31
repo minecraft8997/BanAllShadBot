@@ -123,15 +123,6 @@ public class Main {
                     }
                 }
 
-                boolean replyMode = true;
-                if (BAN_PERIOD_SECONDS != 86400) {
-                    event.reply("Caution: the bot is configured to " +
-                            "ban the channel for " + BAN_PERIOD_SECONDS + " second(s) " +
-                            "instead of 86400 (1 day). Probably the bot is running in test " +
-                            "environment.").queue();
-
-                    replyMode = false;
-                }
                 ((GuildChannel) event.getChannel()).getManager()
                         .putPermissionOverride(
                                 event.getGuild().getPublicRole(),
@@ -147,11 +138,7 @@ public class Main {
                 builder.setImage(MESSAGE_IMAGE);
                 builder.setFooter(MESSAGE_FOOTER);
 
-                MessageEmbed embed = builder.build();
-                if (replyMode)
-                    event.replyEmbeds(embed).queue();
-                else
-                    event.getChannel().sendMessageEmbeds(embed).queue();
+                event.replyEmbeds(builder.build()).queue();
             }
 
             @Override
