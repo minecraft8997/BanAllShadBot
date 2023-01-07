@@ -4,8 +4,8 @@
     <root id="root">
       <element id="archive" name="BanAllShadBot.jar">
         <element id="module-output" name="BanAllShadBot" />
+        <element id="extracted-dir" path="$PROJECT_DIR$/../JDA-Discord/JDA-4.4.0_350-withDependencies.jar" path-in-jar="/" />
       </element>
-      <element id="library" level="project" name="JDA-4.4.0_350-sources" />
     </root>
   </artifact>
 </component>

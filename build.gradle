@@ -1,0 +1,27 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+version = '1.0.0'
+
+application {
+    mainClass = 'ru.deewend.banallbot.Main'
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        name 'm2-dv8tion'
+        url 'https://m2.dv8tion.net/releases'
+    }
+}
+
+dependencies {
+    implementation('net.dv8tion:JDA:4.4.0_350') {
+        exclude module: 'opus-java'
+    }
+}
+
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
