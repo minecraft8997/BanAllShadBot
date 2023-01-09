@@ -145,18 +145,17 @@ public class Main {
         jda.addEventListener(new ListenerAdapter() {
             @Override
             public void onSlashCommand(SlashCommandEvent event) {
-                switch (event.getCommandString()) {
-                    case "/banall":
-                        onBanAllCommand(event);
-                        break;
-                    case "/banall-leaderboard":
-                        onLeaderboardCommand(event, true);
-                        break;
-                    case "/story-leaderboard":
-                        onLeaderboardCommand(event, false);
-                        break;
-                    default:
-                        event.reply("Unknown command, please contact deewend.").queue();
+                String commandString = event.getCommandString();
+
+                if (commandString.startsWith("/banall ")) {
+                    onBanAllCommand(event);
+                } else if (commandString.startsWith("/banall-leaderboard ")) {
+                    onLeaderboardCommand(event, true);
+                } else if (commandString.startsWith("/story-leaderboard ")) {
+                    onLeaderboardCommand(event, false);
+                } else {
+                    System.err.println("[ERROR] Received an unknown command: " + commandString);
+                    event.reply("Unknown command, please contact deewend.").queue();
                 }
             }
 
@@ -230,7 +229,7 @@ public class Main {
                     return;
                 }
                 if (maxResults_ < 1 || maxResults_ > 50) {
-                    event.reply("Max results value should be >= 1 and <= 50").queue();
+                    event.reply("Max results value should be >= 1 and <= 50.").queue();
 
                     return;
                 }
