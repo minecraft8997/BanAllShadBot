@@ -20,7 +20,15 @@ repositories {
 dependencies {
     implementation('net.dv8tion:JDA:4.4.0_350') {
         exclude module: 'opus-java'
+        exclude module: 'okhttp'
     }
+    implementation 'com.squareup.okhttp3:okhttp:4.10.0'
+}
+
+task(runMain, dependsOn: 'classes', type: JavaExec) {
+    //noinspection GrDeprecatedAPIUsage
+    main = 'ru.deewend.banallbot.Main'
+    classpath = sourceSets.main.runtimeClasspath
 }
 
 sourceCompatibility = '1.8'

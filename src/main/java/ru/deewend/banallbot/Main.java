@@ -4,10 +4,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.Activity;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.GuildChannel;
-import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -192,11 +189,14 @@ public class Main {
                                 Collections.singletonList(Permission.MESSAGE_WRITE)
                         ).queue();
 
+                User author = event.getUser();
+                Database.getInstance().incrementTimesBanned(author);
+
                 EmbedBuilder builder = new EmbedBuilder();
                 builder.setColor(Color.RED);
                 builder.setTitle(MESSAGE_TITLE);
                 builder.setDescription(String.format(
-                        MESSAGE_DESCRIPTION, event.getUser().getName()));
+                        MESSAGE_DESCRIPTION, author.getName()));
                 builder.setImage(MESSAGE_IMAGES[(int)
                         (Math.random() * MESSAGE_IMAGES.length)]);
                 builder.setFooter(MESSAGE_FOOTER);
@@ -214,8 +214,10 @@ public class Main {
                 OptionMapping maxResultsOption = event.getOption("max-results");
 
                 String leaderboardTitle = (banall ? "BanAll" : "One Word Story");
-                long offset_ = (offsetOption != null ? offsetOption.getAsLong() : 0);
-                long maxResults_ = (maxResultsOption != null ? maxResultsOption.getAsLong() : 20);
+                long offset_ =
+                        (offsetOption != null ? offsetOption.getAsLong() : 0);
+                long maxResults_ =
+                        (maxResultsOption != null ? maxResultsOption.getAsLong() : 20);
 
                 if (offset_ < 0) {
                     event.reply("Negative offset.").queue();
@@ -237,8 +239,8 @@ public class Main {
                 int maxResults = (int) maxResults_;
 
                 long start = System.currentTimeMillis();
-                Object[] rendered = Leaderboards.getInstance()
-                        .renderResults(leaderboardTitle, offset, maxResults, event.getUser());
+                Object[] rendered = Leaderboards.getInstance().renderResults(
+                        leaderboardTitle, offset, maxResults, event.getUser().getIdLong());
 
                 EmbedBuilder builder = new EmbedBuilder();
                 builder.setColor(banall ? Color.RED : Color.GREEN);
@@ -321,9 +323,5 @@ public class Main {
                 .addOption(OptionType.INTEGER, "offset", "Must be >= 0")
                 .addOption(OptionType.INTEGER, "max-results",
                         "Must be >= 1 and <= 50");
-    }
-
-    public static JDA getJDA() {
-        return jda;
     }
 }

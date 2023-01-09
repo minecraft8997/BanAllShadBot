@@ -19,16 +19,6 @@ public class Helper {
         return user.isBot() && user.getIdLong() == 1035514434497560686L;
     }
 
-    public static String sanitizeNickname(String nickname) {
-        return nickname
-                .replace("*", "")
-                .replace("~", "")
-                .replace("|", "")
-                .replace("`", "")
-                .replace("_", "")
-                .replace(">", "");
-    }
-
     public static String getPlacePostfix(int place) {
         char lastChar = (char) ('0' + (place % 10));
         String placePostfix;
@@ -52,21 +42,6 @@ public class Helper {
         if (deltaSeconds == 86400) return "1 day";
 
         return divide(deltaSeconds, 86400) + " days";
-    }
-
-    // fixme Might be a not really nice implementation
-    public static <T> void waitUntilAllElementsBecomeNonNull(T[] array)
-            throws InterruptedException {
-        global: while (true) {
-            //noinspection BusyWait
-            Thread.sleep(50);
-
-            for (T element : array) {
-                if (element == null) continue global;
-            }
-            // haven't noticed any null element, terminating
-            break;
-        }
     }
 
     private static String divide(long deltaSeconds, double value) {

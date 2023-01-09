@@ -1,9 +1,7 @@
 package ru.deewend.banallbot.database;
 
-import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.internal.utils.tuple.Pair;
 import ru.deewend.banallbot.Helper;
-import ru.deewend.banallbot.Main;
 
 import java.util.*;
 
@@ -55,28 +53,28 @@ public class Leaderboards {
      */
     
     public Object[] renderResults(
-            String leaderboardName, int offset, int maxResults, User requester
+            String leaderboardName, int offset, int maxResults, long requesterID
     ) {
         LeaderboardContainer container;
         synchronized (this) {
             if (!leaderboards.containsKey(leaderboardName)) {
-                return new Object[] {
-                        "Error: such leaderboard does not exist.", System.currentTimeMillis(), 0
+                return new Object[] {"Error: such leaderboard does not exist.",
+                        System.currentTimeMillis(), 0
                 };
             }
 
             container = leaderboards.get(leaderboardName);
         }
 
-        long requesterID = requester.getIdLong();
         boolean foundUserRequested = false;
         StringBuilder sb = new StringBuilder();
         synchronized (container) {
             List<Pair<Long, Integer>> leaderboard = container.leaderboard;
 
             if (System.currentTimeMillis() - container.lastQueried < 180000) {
-                return new Object[] { "Error: this leaderboard is being requested too often! " +
-                        "Please allow up to 3 minutes.", container.lastModified, leaderboard.size()
+                return new Object[] { "Error: this leaderboard is being requested too " +
+                        "often! Please allow up to 3 minutes.", container.lastModified,
+                        leaderboard.size()
                 };
             }
 
@@ -88,56 +86,16 @@ public class Leaderboards {
                 };
             }
 
-            Object[] results = new Object[boundI - offset];
-
             for (int i = offset; i < boundI; i++) {
-                int thisI = i;
                 Pair<Long, Integer> entry = leaderboard.get(i);
                 long discordID = entry.getLeft();
                 int result = entry.getRight();
 
-                if (discordID == requesterID) {
-                    results[thisI] = Pair.of(requester.getAsTag(), result);
-                } else {
-                    Main.getJDA().retrieveUserById(discordID).queue(
-                            user -> results[thisI] = Pair.of(user.getAsTag(), result),
-                            throwable -> results[thisI] = throwable
-                    );
-                }
+                sb.append(renderEntry((i + 1), discordID, result)).append('\n');
 
                 if (!foundUserRequested) {
                     if (discordID == requesterID) foundUserRequested = true;
                 }
-            }
-
-            try {
-                Helper.waitUntilAllElementsBecomeNonNull(results);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-
-                return new Object[] { "Error: received a Thread interruption " +
-                        "request while waiting for responses from Discord.",
-                        container.lastModified, leaderboard.size()
-                };
-            }
-
-            for (int i = 0; i < results.length; i++) {
-                String discordTag;
-                int result;
-                Object current = results[i];
-                if (current instanceof Throwable) {
-                    discordTag = "<failed to retrieve their Discord tag>";
-                    result = -1;
-                } else {
-                    //noinspection unchecked
-                    Pair<String, Integer> entry = (Pair<String, Integer>) current;
-                    discordTag = entry.getLeft();
-                    result = entry.getRight();
-                }
-                int place = offset + i + 1;
-
-                sb.append(renderEntry(place, discordTag, (result != -1), result))
-                        .append('\n');
             }
 
             if (!foundUserRequested) {
@@ -158,10 +116,14 @@ public class Leaderboards {
 
                 if (positionInRating != -1) {
                     boolean drawOnTop = (positionInRating < offset);
-                    String discordTag = requester.getAsTag();
 
-                    String fullEntry = "**... " + renderEntry(positionInRating + 1,
-                            discordTag, true, userResult) + "**";
+                    String fullEntry = "**... " +
+                            renderEntry(
+                                    (positionInRating + 1),
+                                    requesterID,
+                                    userResult
+                            ) + "**";
+
                     if (drawOnTop) {
                         sb.insert(0, fullEntry + "\n\n");
                     } else {
@@ -175,21 +137,8 @@ public class Leaderboards {
     }
 
     private static String renderEntry(
-            int place, String discordTag, boolean shouldSanitize, int result
+            int place, long discordID, int result
     ) {
-        boolean wasSanitized = false;
-        if (shouldSanitize) {
-            String sanitized = Helper.sanitizeNickname(discordTag);
-            if (!sanitized.equals(discordTag)) {
-                discordTag = sanitized;
-                wasSanitized = true;
-            }
-        }
-
-        return place +
-                Helper.getPlacePostfix(place) +
-                discordTag +
-                (wasSanitized ? "_[sanitized]_" : "") +
-                " (" + result + ")";
+        return place + Helper.getPlacePostfix(place) + "<@" + discordID + "> (" + result + ")";
     }
 }
