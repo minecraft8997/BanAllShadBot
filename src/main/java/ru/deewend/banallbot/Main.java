@@ -147,11 +147,11 @@ public class Main {
             public void onSlashCommand(SlashCommandEvent event) {
                 String commandString = event.getCommandString();
 
-                if (commandString.startsWith("/banall ")) {
+                if (commandString.startsWith("/banall")) {
                     onBanAllCommand(event);
-                } else if (commandString.startsWith("/banall-leaderboard ")) {
+                } else if (commandString.startsWith("/banall-leaderboard")) {
                     onLeaderboardCommand(event, true);
-                } else if (commandString.startsWith("/story-leaderboard ")) {
+                } else if (commandString.startsWith("/story-leaderboard")) {
                     onLeaderboardCommand(event, false);
                 } else {
                     System.err.println("[ERROR] Received an unknown command: " + commandString);
@@ -206,6 +206,26 @@ public class Main {
                                 (Math.random() * TOP_SECRET_IMAGES.length)]).queue();
                     }
                 });
+
+                /*
+                // for testing images
+
+                for (String image : MESSAGE_IMAGES) {
+                    EmbedBuilder test = new EmbedBuilder();
+                    test.setColor(Color.RED);
+                    test.setTitle(MESSAGE_TITLE);
+                    test.setDescription(String.format(
+                            MESSAGE_DESCRIPTION, author.getName()));
+                    test.setImage(image);
+                    test.setFooter(MESSAGE_FOOTER);
+
+                    event.getChannel().sendMessage(test.build()).queue();
+                }
+
+                for (String image : TOP_SECRET_IMAGES) {
+                    event.getChannel().sendMessage(image).queue();
+                }
+                 */
             }
 
             private void onLeaderboardCommand(SlashCommandEvent event, boolean banall) {
