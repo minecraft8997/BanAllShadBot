@@ -1,15 +1,16 @@
 #Just a comment
 #Sat Oct 29 17:50:28 MSK 2022
-message_description=by (console) for 1d. (Banned by %s using /BanAll!)
+message_description=by (console) for 30m. (Banned by %s using /BanAll!)
 channel_id=
 guild_id=
 token=
 bot_status_playing=[MCCH] Panda Anarchy. /BanAll
-message_images=https://cdn.discordapp.com/banners/110952852406411264/e88d2a1608446985e24b92dc193c3f31.gif?size=1024
+message_images=https://cdn.discordapp.com/banners/110952852406411264/e88d2a1608446985e24b92dc193c3f31.gif?size=1024, https://gifimage.net/wp-content/uploads/2018/04/panda-cheese-gif-8.gif, https://gifdb.com/images/high/panda-grocery-cart-rage-d1fmdsqgyo3ossl6.gif, https://thumbs.gfycat.com/ImpassionedHatefulCuscus-size_restricted.gif, https://thumbs.gfycat.com/ComposedFastDarwinsfox-size_restricted.gif, https://media.tenor.com/uirNQQJtPrMAAAAC/angry-panda-tv.gif, https://i.makeagif.com/media/4-18-2018/ldhY2-.gif
 message_title=Everyone got BANNED from this channel
 message_footer=See you tomorrow!
 message_unbanned_title=It's time to unlock this channel!
 message_unbanned_description=Have fun!
 message_unbanned_footer=Also try out The BanAll Programming Language! Ban All at anytime!
+top_secret_images=https://images-ext-2.discordapp.net/external/4K2-QrDFyohao1kHgxkda2IbYxfUZBqaIyw5gtxOlio/https/i.imgur.com/ENrCutP.mp4
 ban_period_seconds=30
 one_word_story_channel_id=

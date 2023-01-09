@@ -99,7 +99,7 @@ public class Main {
         MESSAGE_UNBANNED_FOOTER = Objects.requireNonNull(
                 properties.getProperty("message_unbanned_footer"));
         TOP_SECRET_IMAGES = Objects.requireNonNull(
-                properties.getProperty("message_unbanned_footer")).split(", ");
+                properties.getProperty("top_secret_images")).split(", ");
         BAN_PERIOD_SECONDS = Integer.parseInt(
                 properties.getProperty("ban_period_seconds"));
         ONE_WORD_STORY_CHANNEL_ID = Long.parseLong(
