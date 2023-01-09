@@ -30,6 +30,19 @@ public class Helper {
         return placePostfix;
     }
 
+    public static boolean sleep(long millis) {
+        try {
+            Thread.sleep(millis);
+
+            return true;
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            Thread.currentThread().interrupt();
+
+            return false;
+        }
+    }
+
     public static String diffTime(long deltaSeconds) {
         if (deltaSeconds < 0) return "<error, negative delta>";
         if (deltaSeconds == DELTA_SECONDS_NAN) return "<NaN>";

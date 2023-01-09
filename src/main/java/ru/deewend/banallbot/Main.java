@@ -117,10 +117,10 @@ public class Main {
         }
 
         Database.getInstance().load();
-        Database.getInstance().startSavingThread();
+        Database.getInstance().startHelperThread();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            Database.getInstance().interruptSavingThread();
+            Database.getInstance().interruptHelperThread();
             try {
                 Database.getInstance().save();
             } catch (IOException e) {

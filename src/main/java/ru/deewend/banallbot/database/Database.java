@@ -2,6 +2,7 @@ package ru.deewend.banallbot.database;
 
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.internal.utils.tuple.Pair;
+import ru.deewend.banallbot.Helper;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -14,7 +15,7 @@ public class Database {
     private static final File DB_FILE = new File("db.dat");
 
     private Map<Long, UserData> dataMap;
-    private Thread savingThread;
+    private Thread helperThread;
     private volatile boolean unsavedChanges;
 
     private Database() {
@@ -50,24 +51,19 @@ public class Database {
             }
         }
 
-        reportChanges(true);
-        reportChanges(false);
-        unsavedChanges = false;
+        refreshLeaderboards(true);
     }
 
     // should be called on startup when there is only one (main) thread active
-    public void startSavingThread() {
-        if (savingThread != null) throw new IllegalStateException();
+    public void startHelperThread() {
+        if (helperThread != null) throw new IllegalStateException();
 
-        savingThread = new Thread(() -> {
+        helperThread = new Thread(() -> {
             while (true) {
-                try {
-                    //noinspection BusyWait
-                    Thread.sleep(3 * 3600 * 1000); // 3 hours
-                } catch (InterruptedException e) {
-                    //Thread.currentThread().interrupt(); // no need to set the flag again
+                for (int i = 0; i < 3; i++) {
+                    if (!Helper.sleep(3600 * 1000)) break; // 1 hour
 
-                    break;
+                    refreshLeaderboards(false);
                 }
 
                 try {
@@ -77,23 +73,23 @@ public class Database {
                     e.printStackTrace();
                 }
             }
-        }, "Saving Thread");
+        }, "Helper Thread (saving data & refreshing leaderboards)");
 
-        savingThread.setUncaughtExceptionHandler((t, e) -> {
+        helperThread.setUncaughtExceptionHandler((t, e) -> {
             System.err.println("Saving Thread went off due to an unhandled issue:");
             e.printStackTrace();
             System.err.println("The bot will be terminated!");
 
             System.exit(-1);
         });
-        savingThread.start();
+        helperThread.start();
     }
 
     // should be called only in a JVM exit hook
-    public void interruptSavingThread() {
-        if (savingThread == null) throw new IllegalStateException();
+    public void interruptHelperThread() {
+        if (helperThread == null) throw new IllegalStateException();
 
-        savingThread.interrupt();
+        helperThread.interrupt();
     }
 
     /*
@@ -104,30 +100,31 @@ public class Database {
      */
     public synchronized void incrementTimesBanned(User user) {
         retrieveUserData(user.getIdLong()).incrementTimesBanned();
-        reportChanges(true);
+        unsavedChanges = true;
     }
 
     public synchronized void incrementWordsSent(User user) {
         retrieveUserData(user.getIdLong()).incrementWordsSent();
-        reportChanges(false);
+        unsavedChanges = true;
     }
 
-    // should be executed inside synchronized (this)
-    private void reportChanges(boolean banall) {
-        unsavedChanges = true;
+    private void refreshLeaderboards(boolean ignoreUnsavedChangesIsFalse) {
+        List<Pair<Long, Integer>> banAllResultList = new ArrayList<>();
+        List<Pair<Long, Integer>> storyResultList = new ArrayList<>();
+        synchronized (this) {
+            if (!unsavedChanges && !ignoreUnsavedChangesIsFalse) return;
 
-        List<Pair<Long, Integer>> resultList = new ArrayList<>(dataMap.size());
-        for (Map.Entry<Long, UserData> entry : dataMap.entrySet()) {
-            long discordID = entry.getKey();
-            UserData associatedData = entry.getValue();
-            int result = (banall ? associatedData
-                    .getTimesBanned() : associatedData.getWordsSent());
+            for (Map.Entry<Long, UserData> entry : dataMap.entrySet()) {
+                long discordID = entry.getKey();
+                UserData associatedData = entry.getValue();
 
-            resultList.add(Pair.of(discordID, result));
+                banAllResultList.add(Pair.of(discordID, associatedData.getTimesBanned()));
+                storyResultList.add(Pair.of(discordID, associatedData.getWordsSent()));
+            }
         }
 
-        Leaderboards.getInstance().updateLeaderboard(
-                (banall ? "BanAll" : "One Word Story"), resultList);
+        Leaderboards.getInstance().updateLeaderboard("BanAll", banAllResultList);
+        Leaderboards.getInstance().updateLeaderboard("One Word Story", storyResultList);
     }
 
     public synchronized void save() throws IOException {

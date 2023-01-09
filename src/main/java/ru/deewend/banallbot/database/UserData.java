@@ -38,7 +38,7 @@ public class UserData {
         wordsSent++;
     }
 
-    public void serialize(DataOutputStream stream) throws IOException {
+    void serialize(DataOutputStream stream) throws IOException {
         stream.writeInt(timesBanned);
         stream.writeInt(wordsSent);
     }
