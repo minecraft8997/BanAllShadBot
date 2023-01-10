@@ -121,6 +121,7 @@ public class Main {
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             Database.getInstance().interruptHelperThread();
+            System.out.println("Saving database...");
             try {
                 Database.getInstance().save();
             } catch (IOException e) {

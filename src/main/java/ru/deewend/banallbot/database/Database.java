@@ -33,6 +33,7 @@ public class Database {
             //noinspection ResultOfMethodCallIgnored
             DB_FILE.createNewFile();
             dataMap = new HashMap<>();
+            unsavedChanges = true;
 
             return;
         }
@@ -59,9 +60,9 @@ public class Database {
         if (helperThread != null) throw new IllegalStateException();
 
         helperThread = new Thread(() -> {
-            while (true) {
+            global: while (true) {
                 for (int i = 0; i < 3; i++) {
-                    if (!Helper.sleep(3600 * 1000)) break; // 1 hour
+                    if (!Helper.sleep(3600 * 1000)) break global; // 1 hour
 
                     refreshLeaderboards(false);
                 }

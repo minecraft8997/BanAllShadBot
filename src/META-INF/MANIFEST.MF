@@ -1,4 +1,0 @@
-Manifest-Version: 1.0
-Class-Path: JDA-4.4.0_350-withDependencies.jar
-Main-Class: ru.deewend.banallbot.Main
-
