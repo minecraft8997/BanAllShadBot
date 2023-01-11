@@ -29,26 +29,24 @@ public class Database {
     public /* synchronized */ void load() throws IOException {
         if (dataMap != null) return;
 
-        if (!DB_FILE.exists()) {
-            //noinspection ResultOfMethodCallIgnored
-            DB_FILE.createNewFile();
+        if (DB_FILE.createNewFile()) {
+            try (OutputStream stream = new FileOutputStream(DB_FILE)){
+                stream.write(new byte[] { 0, 0, 0, 0 }); // = 0 (32-bit integer)
+            }
             dataMap = new HashMap<>();
-            unsavedChanges = true;
+        } else {
+            try (DataInputStream stream =
+                         new DataInputStream(new FileInputStream(DB_FILE))
+            ) {
+                int numberOfEntries = stream.readInt();
+                dataMap = new HashMap<>(numberOfEntries + 32);
 
-            return;
-        }
+                for (int i = 0; i < numberOfEntries; i++) {
+                    long discordID = stream.readLong();
+                    UserData userData = UserData.deserialize(stream);
 
-        try (DataInputStream stream =
-                     new DataInputStream(new FileInputStream(DB_FILE))
-        ) {
-            int numberOfEntries = stream.readInt();
-            dataMap = new HashMap<>(numberOfEntries);
-
-            for (int i = 0; i < numberOfEntries; i++) {
-                long discordID = stream.readLong();
-                UserData userData = UserData.deserialize(stream);
-
-                dataMap.put(discordID, userData);
+                    dataMap.put(discordID, userData);
+                }
             }
         }
 

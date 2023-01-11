@@ -80,6 +80,12 @@ public class Leaderboards {
 
             int boundI = Math.min(leaderboard.size(), offset + maxResults);
             if (boundI - offset <= 0) {
+                if (leaderboard.isEmpty()) {
+                    return new Object[] { "This leaderboard is... quite a bit empty.",
+                            container.lastModified, 0
+                    };
+                }
+
                 return new Object[] { "Error: offset is too high (or it's guaranteed " +
                         "that there won't be any results shown).",
                         container.lastModified, leaderboard.size()
