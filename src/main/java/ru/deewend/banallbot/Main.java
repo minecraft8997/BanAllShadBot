@@ -148,10 +148,10 @@ public class Main {
             public void onSlashCommand(SlashCommandEvent event) {
                 String commandString = event.getCommandString();
 
-                if (commandString.startsWith("/banall")) {
-                    onBanAllCommand(event);
-                } else if (commandString.startsWith("/banall-leaderboard")) {
+                if (commandString.startsWith("/banall-leaderboard")) {
                     onLeaderboardCommand(event, true);
+                } else if (commandString.startsWith("/banall")) {
+                    onBanAllCommand(event);
                 } else if (commandString.startsWith("/story-leaderboard")) {
                     onLeaderboardCommand(event, false);
                 } else {

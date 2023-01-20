@@ -33,112 +33,114 @@ public class OneWordStoryConstructor extends ListenerAdapter {
         long itsId = messageReceived.getIdLong();
 
         String messageContent = Helper.getContent(messageReceived);
-        if (messageContent.startsWith(".")) {
-            channel.getHistory().retrievePast(100).queue(list -> {
-                StringBuilder storyBuilder = new StringBuilder();
-                int i;
-                int thisDotI = -1;
-                int foundBetween = 0;
-                for (i = 0; i < list.size(); i++) {
-                    Message message = list.get(i);
-                    if (Helper.isMe(message.getAuthor())) continue;
-                    if (thisDotI == -1) {
-                        if (message.getIdLong() == itsId) thisDotI = i;
+        if (!messageContent.startsWith(".")) return;
 
-                        continue;
-                    }
+        channel.getHistory().retrievePast(100).queue(list -> {
+            // FIXME there is a rare bug skipping the first message of the story
 
-                    String messageContent_ = Helper.getContent(message);
-                    if (messageContent_.startsWith(".")) {
-                        if (messageContent_.length() > 1) {
-                            String trueStart = messageContent_.substring(1);
-                            boolean foundAtLeastOneLetter = false;
-                            for (int j = 0; j < trueStart.length(); j++) {
-                                if (Character.isLetter(trueStart.charAt(j))) {
-                                    foundAtLeastOneLetter = true;
+            StringBuilder storyBuilder = new StringBuilder();
+            int i;
+            int thisDotI = -1;
+            int foundBetween = 0;
+            for (i = 0; i < list.size(); i++) {
+                Message message = list.get(i);
+                if (Helper.isMe(message.getAuthor())) continue;
+                if (thisDotI == -1) {
+                    if (message.getIdLong() == itsId) thisDotI = i;
 
-                                    break;
-                                }
-                            }
-                            if (foundAtLeastOneLetter) {
-                                storyBuilder.append(trueStart);
-                                if (foundBetween > 0) storyBuilder.append(' ');
+                    continue;
+                }
+
+                String messageContent_ = Helper.getContent(message);
+                if (messageContent_.startsWith(".")) {
+                    if (messageContent_.length() > 1) {
+                        String trueStart = messageContent_.substring(1);
+                        boolean foundAtLeastOneLetter = false;
+                        for (int j = 0; j < trueStart.length(); j++) {
+                            if (Character.isLetter(trueStart.charAt(j))) {
+                                foundAtLeastOneLetter = true;
+
+                                break;
                             }
                         }
-                        i -= 1;
-
-                        break;
-                    } else {
-                        foundBetween++;
+                        if (foundAtLeastOneLetter) {
+                            storyBuilder.append(trueStart);
+                            if (foundBetween > 0) storyBuilder.append(' ');
+                        }
                     }
+                    i -= 1;
+
+                    break;
+                } else {
+                    foundBetween++;
+                }
+            }
+
+            if (thisDotI == -1) {
+                messageReceived.reply("Just noticed this message contains " +
+                        "a dot and while constructing the final story I didn't " +
+                        "manage to access it :/").queue();
+                // Possible reasons:
+                // a) the author decided to delete message while we were
+                //    processing history;
+                // b) already 100 messages passed while we were doing our job.
+
+                return;
+            }
+            if (foundBetween == 0 && storyBuilder.length() == 0) return;
+            i--;
+
+            boolean firstWord = (storyBuilder.length() == 0);
+            long firstMessageTimestamp = list
+                    .get(!firstWord ? (i + 1) : i)
+                    .getTimeCreated().toEpochSecond();
+            long lastMessageTimestamp =
+                    messageReceived.getTimeCreated().toEpochSecond();
+            String diffTime = Helper
+                    .diffTime((lastMessageTimestamp - firstMessageTimestamp));
+
+            for (; i > thisDotI; i--) {
+                Message message = list.get(i);
+                if (Helper.isMe(message.getAuthor())) continue;
+                String messageContent_ = Helper.getContent(message);
+                if (messageContent_.isEmpty()) continue;
+
+                char firstChar = messageContent_.charAt(0);
+                boolean isLetter = Character.isLetter(firstChar);
+                boolean isUppercase = Character.isUpperCase(firstChar);
+
+                if (firstWord && (isLetter && !isUppercase)) {
+                    char[] chars = messageContent_.toCharArray();
+                    chars[0] = Character.toUpperCase(firstChar);
+                    messageContent_ = new String(chars);
+
+                } else if (!firstWord && (isLetter && isUppercase)) {
+                    char[] chars = messageContent_.toCharArray();
+                    chars[0] = Character.toLowerCase(firstChar);
+                    messageContent_ = new String(chars);
                 }
 
-                if (thisDotI == -1) {
-                    messageReceived.reply("Just noticed this message contains " +
-                            "a dot and while constructing the final story I didn't " +
-                            "manage to access it :/").queue();
-                    // Possible reasons:
-                    // a) the author decided to delete message while we were
-                    //    processing history;
-                    // b) already 100 messages passed while we were doing our job.
+                CharSequence processed = checkForbiddenWord(messageContent_);
+                storyBuilder.append(processed);
+                if (i > thisDotI + 1) storyBuilder.append(' ');
 
-                    return;
-                }
-                if (foundBetween == 0 && storyBuilder.length() == 0) return;
-                i--;
+                if (firstWord) firstWord = false;
+            }
+            storyBuilder.append('.');
 
-                boolean firstWord = (storyBuilder.length() == 0);
-                long firstMessageTimestamp = list
-                        .get(!firstWord ? (i + 1) : i)
-                        .getTimeCreated().toEpochSecond();
-                long lastMessageTimestamp =
-                        messageReceived.getTimeCreated().toEpochSecond();
-                String diffTime = Helper
-                        .diffTime((lastMessageTimestamp - firstMessageTimestamp));
-
-                for (; i > thisDotI; i--) {
-                    Message message = list.get(i);
-                    if (Helper.isMe(message.getAuthor())) continue;
-                    String messageContent_ = Helper.getContent(message);
-                    if (messageContent_.isEmpty()) continue;
-
-                    char firstChar = messageContent_.charAt(0);
-                    boolean isLetter = Character.isLetter(firstChar);
-                    boolean isUppercase = Character.isUpperCase(firstChar);
-
-                    if (firstWord && (isLetter && !isUppercase)) {
-                        char[] chars = messageContent_.toCharArray();
-                        chars[0] = Character.toUpperCase(firstChar);
-                        messageContent_ = new String(chars);
-
-                    } else if (!firstWord && (isLetter && isUppercase)) {
-                        char[] chars = messageContent_.toCharArray();
-                        chars[0] = Character.toLowerCase(firstChar);
-                        messageContent_ = new String(chars);
-                    }
-
-                    CharSequence processed = checkForbiddenWord(messageContent_);
-                    storyBuilder.append(processed);
-                    if (i > thisDotI + 1) storyBuilder.append(' ');
-
-                    if (firstWord) firstWord = false;
-                }
-                storyBuilder.append('.');
-
-                // announcing the completed story
-                StringBuilder announcementBuilder = new StringBuilder();
-                String introduction =
-                        INTRODUCTIONS[(int) (Math.random() * INTRODUCTIONS.length)];
-                announcementBuilder
-                        .append(introduction)
-                        .append("\n\n")
-                        .append("**").append(storyBuilder).append("**")
-                        .append("\n\n")
-                        .append("Time elapsed (between the first and the last messages): ")
-                        .append(diffTime);
-                channel.sendMessage(announcementBuilder).queue();
-            });
-        }
+            // announcing the completed story
+            StringBuilder announcementBuilder = new StringBuilder();
+            String introduction =
+                    INTRODUCTIONS[(int) (Math.random() * INTRODUCTIONS.length)];
+            announcementBuilder
+                    .append(introduction)
+                    .append("\n\n")
+                    .append("**").append(storyBuilder).append("**")
+                    .append("\n\n")
+                    .append("Time elapsed (between the first and the last messages): ")
+                    .append(diffTime);
+            channel.sendMessage(announcementBuilder).queue();
+        });
     }
 
     private static CharSequence checkForbiddenWord(String message) {

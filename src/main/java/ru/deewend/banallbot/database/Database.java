@@ -45,6 +45,22 @@ public class Database {
                     long discordID = stream.readLong();
                     UserData userData = UserData.deserialize(stream);
 
+                    int timesBanned = userData.getTimesBanned();
+                    int wordsSent = userData.getWordsSent();
+
+                    if (timesBanned < 0 || wordsSent < 0) {
+                        reportSkippedLoading(discordID, "found a negative value " +
+                                "in their stats. Definitely corrupted");
+
+                        continue;
+                    }
+                    if (timesBanned == 0 && wordsSent == 0) {
+                        reportSkippedLoading(discordID, "both of their stats " +
+                                "values are equal to zero. Might be a bug");
+
+                        continue;
+                    }
+
                     dataMap.put(discordID, userData);
                 }
             }
@@ -53,20 +69,24 @@ public class Database {
         refreshLeaderboards(true);
     }
 
+    private static void reportSkippedLoading(long discordID, String reason) {
+        System.err.println("Skipped loading " + discordID + "'s entry: " + reason);
+    }
+
     // should be called on startup when there is only one (main) thread active
     public void startHelperThread() {
         if (helperThread != null) throw new IllegalStateException();
 
         helperThread = new Thread(() -> {
             global: while (true) {
-                for (int i = 0; i < 3; i++) {
-                    if (!Helper.sleep(3600 * 1000)) break global; // 1 hour
+                for (int i = 0; i < 6; i++) {
+                    if (!Helper.sleep(10 * 1000)) break global; // 10 minutes
 
                     refreshLeaderboards(false);
                 }
 
                 try {
-                    save();
+                    save(); // is called once an hour
                 } catch (IOException e) {
                     System.err.println("Failed to save the database:");
                     e.printStackTrace();
@@ -117,8 +137,15 @@ public class Database {
                 long discordID = entry.getKey();
                 UserData associatedData = entry.getValue();
 
-                banAllResultList.add(Pair.of(discordID, associatedData.getTimesBanned()));
-                storyResultList.add(Pair.of(discordID, associatedData.getWordsSent()));
+                int timesBanned = associatedData.getTimesBanned();
+                int wordsSent = associatedData.getWordsSent();
+
+                if (timesBanned > 0) {
+                    banAllResultList.add(Pair.of(discordID, timesBanned));
+                }
+                if (wordsSent > 0) {
+                    storyResultList.add(Pair.of(discordID, wordsSent));
+                }
             }
         }
 
