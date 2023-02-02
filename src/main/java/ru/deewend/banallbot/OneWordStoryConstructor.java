@@ -144,8 +144,10 @@ public class OneWordStoryConstructor extends ListenerAdapter {
     }
 
     private static CharSequence checkForbiddenWord(String message) {
+        String lowerCaseMessage = message.toLowerCase();
+
         for (String badWord : FORBIDDEN_WORDS) {
-            if (message.equalsIgnoreCase(badWord)) {
+            if (lowerCaseMessage.contains(badWord)) {
                 StringBuilder sb = new StringBuilder();
                 for (int i = 0; i < message.length(); i++) {
                     sb.append('#');

@@ -58,7 +58,7 @@ public class Leaderboards {
         LeaderboardContainer container;
         synchronized (this) {
             if (!leaderboards.containsKey(leaderboardName)) {
-                return new Object[] {"Error: such leaderboard does not exist.",
+                return new Object[] { "Error: such leaderboard does not exist.",
                         System.currentTimeMillis(), 0
                 };
             }
