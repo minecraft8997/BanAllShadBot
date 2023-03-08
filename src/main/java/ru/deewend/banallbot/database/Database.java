@@ -3,6 +3,7 @@ package ru.deewend.banallbot.database;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.internal.utils.tuple.Pair;
 import ru.deewend.banallbot.Helper;
+import ru.deewend.banallbot.Main;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -17,6 +18,8 @@ public class Database {
     private Map<Long, UserData> dataMap;
     private Thread helperThread;
     private volatile boolean unsavedChanges;
+    private volatile String banTimeTotalStr;
+    private volatile long timesBannedTotal;
 
     private Database() {
     }
@@ -130,9 +133,11 @@ public class Database {
     private void refreshLeaderboards(boolean ignoreUnsavedChangesIsFalse) {
         List<Pair<Long, Integer>> banAllResultList = new ArrayList<>();
         List<Pair<Long, Integer>> storyResultList = new ArrayList<>();
+
         synchronized (this) {
             if (!unsavedChanges && !ignoreUnsavedChangesIsFalse) return;
 
+            long banTimeTotal = 0;
             for (Map.Entry<Long, UserData> entry : dataMap.entrySet()) {
                 long discordID = entry.getKey();
                 UserData associatedData = entry.getValue();
@@ -142,11 +147,16 @@ public class Database {
 
                 if (timesBanned > 0) {
                     banAllResultList.add(Pair.of(discordID, timesBanned));
+                    banTimeTotal += timesBanned;
                 }
                 if (wordsSent > 0) {
                     storyResultList.add(Pair.of(discordID, wordsSent));
                 }
             }
+
+            this.timesBannedTotal = (int) banTimeTotal;
+            banTimeTotal *= Main.getBanPeriodSeconds();
+            this.banTimeTotalStr = Helper.diffTime(banTimeTotal);
         }
 
         Leaderboards.getInstance().updateLeaderboard("BanAll", banAllResultList);
@@ -187,5 +197,15 @@ public class Database {
         userData = dataMap.computeIfAbsent(discordID, key -> new UserData());
 
         return userData;
+    }
+
+    public Object[] getBanStats() {
+        Object[] result = new Object[2];
+        synchronized (this) {
+            result[0] = banTimeTotalStr;
+            result[1] = timesBannedTotal;
+        }
+
+        return result;
     }
 }

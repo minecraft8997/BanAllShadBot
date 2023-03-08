@@ -361,4 +361,8 @@ public class Main {
                 .addOption(OptionType.INTEGER, "max-results",
                         "Must be >= 1 and <= 50");
     }
+
+    public static int getBanPeriodSeconds() {
+        return BAN_PERIOD_SECONDS;
+    }
 }
