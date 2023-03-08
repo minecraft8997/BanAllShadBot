@@ -29,6 +29,10 @@ If the machine is utilized only by you, probably it's safe to ignore this issue
 completely, but I would still recommend you setting this flag just to be
 sure everything is fine.
 
+Also, I am not recommending running old bot versions before commit `65c8cf1`.
+According to Snyk report, there were some potential medium-scored vulnerabilities
+coming from internal JDA-Discord dependencies.
+
 ## Building
 This is a Gradle project, so it should be easy to import it to your
 favourite Java IDE. To build the bot from the command line, do
