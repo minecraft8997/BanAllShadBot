@@ -26,20 +26,21 @@ public class Main {
     private static final File PROPERTIES_FILE = new File("bot.properties");
     private static final Object LOCK = new Object();
 
-    private static String   TOKEN;
-    private static long     GUILD_ID;
-    private static long     CHANNEL_ID;
-    private static String   BOT_STATUS_PLAYING;
-    private static String   MESSAGE_TITLE;
-    private static String   MESSAGE_DESCRIPTION;
-    private static String[] MESSAGE_IMAGES;
-    private static String   MESSAGE_FOOTER;
-    private static String   MESSAGE_UNBANNED_TITLE;
-    private static String   MESSAGE_UNBANNED_DESCRIPTION;
-    private static String   MESSAGE_UNBANNED_FOOTER;
-    private static String[] TOP_SECRET_IMAGES;
-    private static int      BAN_PERIOD_SECONDS;
-    public static long      ONE_WORD_STORY_CHANNEL_ID;
+    private static String         TOKEN;
+    private static long           GUILD_ID;
+    private static long           CHANNEL_ID;
+    private static String         BOT_STATUS_PLAYING;
+    private static String         MESSAGE_TITLE;
+    private static String         MESSAGE_DESCRIPTION;
+    private static String[]       MESSAGE_IMAGES;
+    private static String         MESSAGE_FOOTER;
+    private static String         MESSAGE_UNBANNED_TITLE;
+    private static String         MESSAGE_UNBANNED_DESCRIPTION;
+    private static String         MESSAGE_UNBANNED_FOOTER;
+    private static String[]       TOP_SECRET_IMAGES;
+    private static int            BAN_PERIOD_SECONDS;
+    public static long            ONE_WORD_STORY_CHANNEL_ID;
+    public static final Set<Long> ADMINISTRATOR_IDS = new HashSet<>();
 
     private static JDA jda;
     private static volatile boolean IN_BANNED_STATE;
@@ -62,6 +63,7 @@ public class Main {
             properties.setProperty("top_secret_images", "");
             properties.setProperty("ban_period_seconds", "");
             properties.setProperty("one_word_story_channel_id", "");
+            properties.setProperty("administrator_ids", "");
 
             //noinspection ResultOfMethodCallIgnored
             PROPERTIES_FILE.createNewFile();
@@ -104,10 +106,17 @@ public class Main {
                 properties.getProperty("ban_period_seconds"));
         ONE_WORD_STORY_CHANNEL_ID = Long.parseLong(
                 properties.getProperty("one_word_story_channel_id"));
+        String[] administratorIds = Objects.requireNonNull(
+                properties.getProperty("administrator_ids")).split(", ");
+        for (String entry : administratorIds) {
+            ADMINISTRATOR_IDS.add(Long.parseLong(entry));
+        }
+        System.out.println("Administrator count: " + ADMINISTRATOR_IDS.size());
+
         {
             String value;
             if ((value = properties.getProperty("shad_is_cool")) != null) {
-                if (!value.equals("true")) {
+                if (!value.equalsIgnoreCase("true")) {
                     System.out.println("\"shad_is_cool\" property exists but does not " +
                             "equal to \"true\". Are you going to say Shad isn't cool?");
 
@@ -118,6 +127,7 @@ public class Main {
 
         Database.getInstance().load();
         Database.getInstance().startHelperThread();
+        System.out.println("Loaded database");
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             Database.getInstance().interruptHelperThread();
@@ -130,6 +140,7 @@ public class Main {
             }
         }));
 
+        System.out.println("Initializing JDA, prepare for a SLF4J error :)");
         jda = JDABuilder.createDefault(TOKEN)
                 .setActivity(Activity.playing(BOT_STATUS_PLAYING))
                 .build();
@@ -335,6 +346,12 @@ public class Main {
                                 null
                         ).queue();
             }
+        }
+    }
+
+    public static boolean isAdministrator(User user) {
+        synchronized (ADMINISTRATOR_IDS) {
+            return ADMINISTRATOR_IDS.contains(user.getIdLong());
         }
     }
 

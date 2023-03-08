@@ -22,6 +22,39 @@ public class OneWordStoryController extends ListenerAdapter {
         if (Helper.isMe(author)) return;
 
         String messageContent = Helper.getContent(messageReceived);
+        if (messageContent.isEmpty() || messageContent.startsWith("#?")) return;
+
+        boolean isAdmin = Main.isAdministrator(author);
+        byte commandResult = Helper.checkAdminCommand(isAdmin, messageContent);
+        if (commandResult != Helper.RESULT_NOT_A_COMMAND) {
+            switch (commandResult) {
+                case Helper.RESULT_THERE_WAS_AN_ISSUE_WITH_THIS_COMMAND:
+                    messageReceived.reply("There was " +
+                            "an issue executing this command").queue();
+                    break;
+                case Helper.RESULT_EXECUTED_THE_COMMAND:
+                    messageReceived.reply("Okay :thumbsup:").queue();
+                    break;
+                case Helper.RESULT_BINARY_ANSWER_YES:
+                    messageReceived.reply("Yes").queue();
+                    break;
+                case Helper.RESULT_BINARY_ANSWER_NO:
+                    messageReceived.reply("No").queue();
+                    break;
+                default:
+                    messageReceived.reply("Error: no route for this result").queue();
+                    break;
+            }
+
+            return;
+        }
+
+        if (isAdmin && Helper.areAdminRestrictionsOff()) {
+            messageOk(event);
+
+            return;
+        }
+
         if (messageContent.split(" ").length > 1) {
             messageReceived.reply("Only one-word messages are allowed :(")
                     .queue(unused -> messageReceived.delete().queue());
@@ -33,11 +66,15 @@ public class OneWordStoryController extends ListenerAdapter {
                 .retrievePast(20)
                 .queue(list -> {
                     if (checkCooldown(messageReceived, messageContent, list)) {
-                        Database.getInstance().incrementWordsSent(author);
-
-                        storyConstructor.onGuildMessageReceived(event);
+                        messageOk(event);
                     }
                 });
+    }
+
+    private void messageOk(GuildMessageReceivedEvent event) {
+        Database.getInstance().incrementWordsSent(event.getAuthor());
+
+        storyConstructor.onGuildMessageReceived(event);
     }
 
     private static boolean checkCooldown(

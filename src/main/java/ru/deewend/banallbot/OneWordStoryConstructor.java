@@ -17,7 +17,7 @@ public class OneWordStoryConstructor extends ListenerAdapter {
             "Guys,"
     };
 
-    // please don't read the next 4 lines if you are underage
+    // please don't read the next 4 lines if you are unsure you are ready to
 
     private static final String[] FORBIDDEN_WORDS =
             { "fuck", "fucked", "fucking", "motherfucker", "penis",
@@ -36,8 +36,6 @@ public class OneWordStoryConstructor extends ListenerAdapter {
         if (!messageContent.startsWith(".")) return;
 
         channel.getHistory().retrievePast(100).queue(list -> {
-            // FIXME there is a rare bug skipping the first message of the story
-
             StringBuilder storyBuilder = new StringBuilder();
             int i;
             int thisDotI = -1;
@@ -45,13 +43,15 @@ public class OneWordStoryConstructor extends ListenerAdapter {
             for (i = 0; i < list.size(); i++) {
                 Message message = list.get(i);
                 if (Helper.isMe(message.getAuthor())) continue;
+
+                String messageContent_ = Helper.getContent(message);
+                if (shouldSkip(messageContent_)) continue;
+
                 if (thisDotI == -1) {
                     if (message.getIdLong() == itsId) thisDotI = i;
 
                     continue;
                 }
-
-                String messageContent_ = Helper.getContent(message);
                 if (messageContent_.startsWith(".")) {
                     if (messageContent_.length() > 1) {
                         String trueStart = messageContent_.substring(1);
@@ -88,7 +88,9 @@ public class OneWordStoryConstructor extends ListenerAdapter {
                 return;
             }
             if (foundBetween == 0 && storyBuilder.length() == 0) return;
-            i--;
+            if (Helper.isMe(list.get(i).getAuthor())) {
+                i--;
+            }
 
             boolean firstWord = (storyBuilder.length() == 0);
             long firstMessageTimestamp = list
@@ -102,8 +104,9 @@ public class OneWordStoryConstructor extends ListenerAdapter {
             for (; i > thisDotI; i--) {
                 Message message = list.get(i);
                 if (Helper.isMe(message.getAuthor())) continue;
+
                 String messageContent_ = Helper.getContent(message);
-                if (messageContent_.isEmpty()) continue;
+                if (shouldSkip(messageContent_)) continue;
 
                 char firstChar = messageContent_.charAt(0);
                 boolean isLetter = Character.isLetter(firstChar);
@@ -115,14 +118,29 @@ public class OneWordStoryConstructor extends ListenerAdapter {
                     messageContent_ = new String(chars);
 
                 } else if (!firstWord && (isLetter && isUppercase)) {
-                    char[] chars = messageContent_.toCharArray();
-                    chars[0] = Character.toLowerCase(firstChar);
-                    messageContent_ = new String(chars);
+                    boolean proceed = true;
+                    if (messageContent_.length() >= 2) {
+                        char secondChar = messageContent_.charAt(1);
+                        if (Character.isDigit(secondChar) ||
+                                Character.isUpperCase(secondChar)) {
+                            proceed = false;
+                        }
+                    }
+                    if (proceed) {
+                        char[] chars = messageContent_.toCharArray();
+                        chars[0] = Character.toLowerCase(firstChar);
+                        messageContent_ = new String(chars);
+                    }
                 }
 
                 CharSequence processed = checkForbiddenWord(messageContent_);
                 storyBuilder.append(processed);
-                if (i > thisDotI + 1) storyBuilder.append(' ');
+                if (i > thisDotI + 1) {
+                    if (i != thisDotI + 2 ||
+                            !shouldSkip(list.get(thisDotI + 1).getContentRaw())) {
+                        storyBuilder.append(' ');
+                    }
+                }
 
                 if (firstWord) firstWord = false;
             }
@@ -141,6 +159,12 @@ public class OneWordStoryConstructor extends ListenerAdapter {
                     .append(diffTime);
             channel.sendMessage(announcementBuilder).queue();
         });
+    }
+
+    private static boolean shouldSkip(String message) {
+        return (message.isEmpty() ||
+                message.startsWith(Helper.ADMIN_COMMAND_PREFIX) ||
+                message.startsWith("#?"));
     }
 
     private static CharSequence checkForbiddenWord(String message) {

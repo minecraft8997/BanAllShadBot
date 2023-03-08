@@ -3,12 +3,57 @@ package ru.deewend.banallbot;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 
-import java.text.DecimalFormat;
-
 public class Helper {
+    public static final String ADMIN_COMMAND_PREFIX = "#!admin_panel ";
+    public static final byte RESULT_NOT_A_COMMAND = 0;
+    public static final byte RESULT_EXECUTED_THE_COMMAND = 1;
+    public static final byte RESULT_BINARY_ANSWER_YES = 2;
+    public static final byte RESULT_BINARY_ANSWER_NO = 3;
+    public static final byte RESULT_THERE_WAS_AN_ISSUE_WITH_THIS_COMMAND = 4;
+
     public static final long DELTA_SECONDS_NAN = Long.MAX_VALUE;
 
+    private static /* volatile */ boolean adminRestrictionsAreOff;
+
     private Helper() {
+    }
+
+    public static byte checkAdminCommand(boolean isAdmin, String message) {
+        message = message.toLowerCase();
+        if (message.startsWith(ADMIN_COMMAND_PREFIX)) {
+            if (!isAdmin) {
+                return RESULT_THERE_WAS_AN_ISSUE_WITH_THIS_COMMAND;
+            }
+
+            String command = message.substring(14).trim();
+            switch (command) {
+                case "are_admin_restrictions_off":
+                    return (adminRestrictionsAreOff ? RESULT_BINARY_ANSWER_YES :
+                            RESULT_BINARY_ANSWER_NO);
+                case "admin_turn_off_restrictions":
+                    if (adminRestrictionsAreOff) {
+                        return RESULT_THERE_WAS_AN_ISSUE_WITH_THIS_COMMAND;
+                    }
+                    adminRestrictionsAreOff = true;
+
+                    return RESULT_EXECUTED_THE_COMMAND;
+                case "admin_turn_on_restrictions":
+                    if (!adminRestrictionsAreOff) {
+                        return RESULT_THERE_WAS_AN_ISSUE_WITH_THIS_COMMAND;
+                    }
+                    adminRestrictionsAreOff = false;
+
+                    return RESULT_EXECUTED_THE_COMMAND;
+                default:
+                    return RESULT_THERE_WAS_AN_ISSUE_WITH_THIS_COMMAND;
+            }
+        }
+
+        return RESULT_NOT_A_COMMAND;
+    }
+
+    public static boolean areAdminRestrictionsOff() {
+        return adminRestrictionsAreOff;
     }
 
     public static String getContent(Message message) {
@@ -45,18 +90,34 @@ public class Helper {
     public static String diffTime(long deltaSeconds) {
         if (deltaSeconds < 0) return "<error, negative delta>";
         if (deltaSeconds == DELTA_SECONDS_NAN) return "<NaN>";
-        if (deltaSeconds == 1) return "1 second";
-        if (deltaSeconds < 60) return deltaSeconds + " seconds";
-        if (deltaSeconds == 60) return "1 minute";
-        if (deltaSeconds < 3600) return divide(deltaSeconds, 60) + " minutes";
-        if (deltaSeconds == 3600) return "1 hour";
-        if (deltaSeconds < 86400) return divide(deltaSeconds, 3600) + " hours";
-        if (deltaSeconds == 86400) return "1 day";
 
-        return divide(deltaSeconds, 86400) + " days";
-    }
+        long days = deltaSeconds / 86400;
+        deltaSeconds -= days * 86400;
+        long hours = deltaSeconds / 3600;
+        deltaSeconds -= hours * 3600;
+        long minutes = deltaSeconds / 60;
+        deltaSeconds -= minutes * 60;
+        long seconds = deltaSeconds;
 
-    private static String divide(long deltaSeconds, double value) {
-        return new DecimalFormat("#0.00").format(deltaSeconds / value);
+        String result = "";
+        boolean needToAppendSpace = false;
+        if (days > 0) {
+            result += days + "d";
+            needToAppendSpace = true;
+        }
+        if (hours > 0) {
+            result += (needToAppendSpace ? " " : "") + hours + "h";
+            needToAppendSpace = true;
+        }
+        if (minutes > 0) {
+            result += (needToAppendSpace ? " " : "") + minutes + "m";
+            needToAppendSpace = true;
+        }
+        if (seconds > 0) {
+            result += (needToAppendSpace ? " " : "") + seconds + "s";
+        }
+        if (result.isEmpty()) result = "0s";
+
+        return result;
     }
 }
