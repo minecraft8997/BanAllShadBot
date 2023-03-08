@@ -25,7 +25,7 @@ the application is indeed vulnerable is unknown, but to follow best
 practices I would recommend including the following JVM flag to your
 startup command to mitigate the issue:
 
-`-Djava.io.tmpdir=the_directory_you_consider_safe_enough_for_temporary_files`.
+`-Djava.io.tmpdir=the_directory_you_consider_safe_enough_for_temporary_files`
 
 An example of a secure startup command would be
 `java -Xmx128M -Djava.io.tmpdir=/home/deewend/BanAllShadBot/tmp/ -jar BanAllShadBot.jar`
