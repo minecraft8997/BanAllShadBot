@@ -137,11 +137,12 @@ public class Leaderboards {
                     }
                 }
             }
-
-            Object[] banStats = Database.getInstance().getBanStats();
-            sb.append("\n**Total #ban-all channel ban time:** ")
-                    .append((String) banStats[0])
-                    .append(" (").append(banStats[1]).append(" times)");
+            if (leaderboardName.equals("BanAll")) {
+                Object[] banStats = Database.getInstance().getBanStats();
+                sb.append("\n**Total #ban-all channel ban time:** ")
+                        .append((String) banStats[0])
+                        .append(" (").append(banStats[1]).append(" times)");
+            }
 
             return new Object[] { sb.toString(), container.lastModified, leaderboard.size() };
         }
