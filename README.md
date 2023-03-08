@@ -1,4 +1,9 @@
 # BanAll Shad Bot
+
+![jenkins](https://img.shields.io/badge/Jenkins-What%20is%20that-red)
+![build](https://img.shields.io/badge/Build-dying-red)
+![code contains potatos](https://img.shields.io/badge/Code%20contains-potatos-blue)
+
 This is the repository of a Discord bot I've written specially for
 Shad's Discord server. It introduces our favourite /banall command
 (though it's designed to be available only in a dedicated channel)
@@ -29,7 +34,8 @@ If the machine is utilized only by you, probably it's safe to ignore this issue
 completely, but I would still recommend you setting this flag just to be
 sure everything is fine.
 
-Also, I am not recommending running old bot versions before commit `65c8cf1`.
+Also, I am not recommending running old bot versions before commit
+[`65c8cf1`](https://github.com/minecraft8997/BanAllShadBot/commit/65c8cf1d829ef874229ac0060753006a24258b40).
 According to Snyk report, there were some potential medium-scored vulnerabilities
 coming from internal JDA-Discord dependencies.
 
