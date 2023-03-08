@@ -44,5 +44,5 @@ coming from internal JDA-Discord dependencies.
 ## Building
 This is a Gradle project, so it should be easy to import it to your
 favourite Java IDE. To build the bot from the command line, do
-`gradlew.bat build` (Windows) or `./gradlew build` (Unix). The binary
-should be located in the `./build/libs` folder.
+`gradlew.bat build` (Windows) or `./gradlew build` (Unix). Requires
+JDK 8. The binary should be located in the `./build/libs` folder.
