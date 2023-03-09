@@ -65,7 +65,7 @@ public class Helper {
     }
 
     public static String getPlacePostfix(int place) {
-        if (place >= 11 && place <= 13) return "-th";
+        if (place >= 11 && place <= 13) return "-th: ";
 
         char lastChar = (char) ('0' + (place % 10));
         String placePostfix;

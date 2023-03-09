@@ -30,8 +30,9 @@ startup command to mitigate the issue:
 An example of a secure startup command would be
 `java -Xmx128M -Djava.io.tmpdir=/home/deewend/BanAllShadBot/tmp/ -jar BanAllShadBot.jar`
 where `/home/deewend/BanAllShadBot/` is, for example, the working directory
-and `tmp` is a folder specially designed for possible temporary files
-with properly configured permissions so its contents visible only for you.
+and `tmp` is a folder with properly configured permissions (so its contents
+should be visible only for your user) specially designed for possible temporary
+files.
 If the machine is utilized only by you, probably it's safe to ignore this issue
 completely, but I would still recommend you setting this flag just to be
 sure everything is fine.
