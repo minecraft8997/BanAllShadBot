@@ -42,7 +42,11 @@ Also, I am not recommending running old bot versions before commit
 According to Snyk report, there were some potential medium-scored vulnerabilities
 coming from internal JDA-Discord dependencies.
 
-## Building
+## Download
+You can always download the latest binary here:
+https://nightly.link/minecraft8997/BanAllShadBot/workflows/build/master/builds.zip.
+
+## Building it yourself
 This is a Gradle project, so it should be easy to import it to your
 favourite Java IDE. To build the bot from the command line, do
 `gradlew.bat build` (Windows) or `./gradlew build` (Unix). Requires
