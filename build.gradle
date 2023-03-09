@@ -32,9 +32,11 @@ jar {
     from {
         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
+
+    archiveFileName = 'BanAllShadBot.jar'
 }
 
-task(runMain, dependsOn: 'classes', type: JavaExec) {
+tasks.register('runMain') {
     //noinspection GrDeprecatedAPIUsage
     main = 'ru.deewend.banallbot.Main'
     classpath = sourceSets.main.runtimeClasspath
