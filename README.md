@@ -12,7 +12,7 @@ able to compile many one-word messages into complete sentence(s).
 Since the bot does not cache messages for further concatenating them,
 it can be freely restarted while other folks are sending the next
 messages. Pretty much many things are configurable via the bot.properties
-file.
+file. Requires Java 8 or above.
 
 ## A security notice on running the application
 According to Snyk report, the application *might* be vulnerable to
